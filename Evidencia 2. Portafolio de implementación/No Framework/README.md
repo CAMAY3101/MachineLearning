@@ -10,10 +10,9 @@ Implementación sin framework
 
     | Nombre             |
     | ----------------- |
-    | Sklearn |
     | Pandas |
     | Numpy |
-    | Seaborn |
+    | scipy |
     | Matplotlib |
 
 
