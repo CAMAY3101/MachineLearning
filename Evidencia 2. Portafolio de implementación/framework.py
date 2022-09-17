@@ -70,8 +70,9 @@ y_pred = modelo_regresion.predict(x_test)
 
 
 # creamos un dataframe con los valores actuales y los de predicción
-validacion = pd.DataFrame({'Actual': y_test.reshape(1, 36)[0], 'Predicción': y_pred.reshape(
-    1, 36)[0], 'Diferencia': y_test.reshape(1, 36)[0] - y_pred.reshape(1, 36)[0]})
+validacion = pd.DataFrame({'Alcohol (Actual)': y_test.reshape(1, 36)[0],
+                           'Alcohol (Predicción)': y_pred.reshape(1, 36)[0],
+                           'Diferencia': y_test.reshape(1, 36)[0] - y_pred.reshape(1, 36)[0]})
 
 muestra_validacion = validacion.head(25)  # elegimos una muestra con 25 valores
 
@@ -102,4 +103,6 @@ print('Error de la raiz cuadrada del promedio of is',
 
 #Se corren al menos cinco predicciones para validar la salida del modelo
 
-print(validacion.head(5))
+data_xtest = pd.DataFrame(x_test, columns=x_columns)
+predictions = pd.concat([data_xtest, validacion], axis=1)
+predictions.head(5)
