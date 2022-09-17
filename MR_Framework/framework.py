@@ -75,8 +75,6 @@ validacion = pd.DataFrame({'Actual': y_test.reshape(1, 36)[0], 'Predicción': y_
 
 muestra_validacion = validacion.head(25)  # elegimos una muestra con 25 valores
 
-muestra_validacion  # desplegamos esos 25 valores
-
 validacion["Diferencia"].describe()
 
 
@@ -100,3 +98,8 @@ print('Puntaje del r2 ', r2_score(y_test, y_pred))
 print('Error promedio ', mean_squared_error(y_test, y_pred))
 print('Error de la raiz cuadrada del promedio of is',
       np.sqrt(mean_squared_error(y_test, y_pred)))
+
+
+#Se corren al menos cinco predicciones para validar la salida del modelo
+
+print(validacion.head(5))
