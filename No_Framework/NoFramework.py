@@ -119,10 +119,9 @@ wine_model.get_intercept()
 
 wine_model.get_predicted()
 
-validacion = pd.DataFrame({'Actual': df['Alcohol'].values, 'Predicted': wine_model.get_predicted(
+validacion = pd.DataFrame({'Alcohol (Actual)': df['Alcohol'].values, 'Alcohol(Predicted)': wine_model.get_predicted(
 ), 'Diferencia': df['Alcohol'] - wine_model.get_predicted(), 'Residuals': wine_model.get_residuals()})
-l = validacion.head(25)
-l
+l = validacion.head(5)
 
 
 # creamos un gráfico de barras con el dataframe que contiene nuestros datos actuales y de predicción
@@ -134,3 +133,9 @@ plt.xlabel("Muestra")
 # indicamos la etiqueta del eje de las y, la cantidad de calorías
 plt.ylabel("Cantidad de Alcohol")
 plt.show()  # desplegamos el gráfico
+
+# Se corren al menos cinco predicciones para validar la salida del modelo
+cols = df[["class", "Malic acid", "Ash", "Alcalinity of ash", "Magnesium", "Total phenols",  "Flavanoids",
+          "Nonflavanoid phenols", "Proanthocyanins", "Color intensity", "Hue", "OD280/OD315 of diluted wines", "Proline"]]
+predictions = pd.concat([cols, validacion], axis=1)
+predictions.head(5)
