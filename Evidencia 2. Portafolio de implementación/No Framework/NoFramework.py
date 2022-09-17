@@ -7,7 +7,7 @@ from scipy import stats
 
 columns = ["class", "Alcohol", "Malic acid", "Ash", "Alcalinity of ash", "Magnesium", "Total phenols",  "Flavanoids",
            "Nonflavanoid phenols", "Proanthocyanins", "Color intensity", "Hue", "OD280/OD315 of diluted wines", "Proline"]
-df = pd.read_csv('datasets/wine.data', names=columns)
+df = pd.read_csv('../datasets/wine.data', names=columns)
 df.head()
 
 #class for a regression model for a pandas dataframe for more than two independent variables and one dependent variable

@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 # import the data
 columns = ["class", "Alcohol", "Malic acid", "Ash", "Alcalinity of ash", "Magnesium", "Total phenols",  "Flavanoids","Nonflavanoid phenols", "Proanthocyanins", "Color intensity", "Hue", "OD280/OD315 of diluted wines", "Proline"]
-df = pd.read_csv('datasets/wine.data', names=columns)
+df = pd.read_csv('../datasets/wine.data', names=columns)
 print(df.head())
 
 #exploring the data
