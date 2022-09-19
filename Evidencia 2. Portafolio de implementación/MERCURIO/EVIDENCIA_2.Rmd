@@ -1,0 +1,613 @@
+---
+title: 'Momento de Retroalimentación: Módulo 1 Construcción de un modelo estadístico
+  base (Portafolio Implementación)'
+output: html_document
+---
+
+## Resumen
+
+La contaminación por mercurio de peces en el agua dulce comestibles es una amenaza directa contra nuestra salud. Se llevó a cabo un estudio reciente en 53 lagos de Florida con el fin de examinar los factores que influían en el nivel de contaminación por mercurio. Para encontrar los factores que influyen en el mercurio se hizo una investigación en dos fases, la primera consistia en explorar los datos sobre los lagos con herramientas estadisticas y posteriormente un analisis de datos con un modelo de regresión multiple. Los princpiaples resultados que se obtvieron con el modelo fue que las 
+
+
+## Introducción
+
+Este analisis se enfoca en buscar una repuesta al principal pregunta, ¿Cuáles son los principales factores que influyen en el nivel de contaminación por mercurio en los peces de los lagos de Florida?. Para hayar estos resultados se segmentaron las variables del dataset entre cuantitativas y cualitativas, hacer una matriz de correlaciones entre variables para poder preseleccionar las variables independientes que analizariamos a profundidad para construir un modelo de regresión lineal multiple.
+
+
+# 1) EXPLORACIÓN DE LA BASE DE DATOS
+
+```{r echo=FALSE}
+## 1.1) Accede a la base de datos de las mediciones del estudio de Mercurio en los lagos de Florida
+df=read.csv("mercurio.csv")
+```
+
+## 1.2) Explora las variables y familiarizate con su significado.
+
+Significado de variables 
+
+  - X1 = número de indentificación
+  - X2 = nombre del lago
+  - X3 = alcalinidad (mg/l de carbonato de calcio)
+  - X4 = PH
+  - X5 = calcio (mg/l)
+  - X6 = clorofila (mg/l)
+  - X7 = concentración media de mercurio (parte por millón) en el tejido muscualar del grupo de peces estudiados en cada lago
+  - X8 = número de peces estudiados en el lago
+  - X9 = mínimo de la concentración de mercurio en cada grupo de peces
+  - X10 = máximo de la concentración de mercurio en cada grupo de peces
+  - X11 = estimacion (mediante regresión) de la concentración de mercurio en el pez de 3 años (o promedio de mercurio cuando la edad no está disponible)
+  - X12 = indicador de la edad de los peces (0: jóvenes; 1: maduros)
+
+```{r echo=FALSE}
+#renombrando las columnas
+
+colnames(df)[1] = "ID"
+colnames(df)[2] = "name"
+colnames(df)[3] = "alcalinidad"
+colnames(df)[4] = "PH"
+colnames(df)[5] = "calcio"
+colnames(df)[6] = "clorofila"
+colnames(df)[7] = "media_C"
+colnames(df)[8] = "num_peces"
+colnames(df)[9] = "min_C"
+colnames(df)[10] = "max_C"
+colnames(df)[11] = "estimacion"
+colnames(df)[12] = "edad"
+```
+
+### 1.2.1) Identifica la cantidad de datos y variables presentes
+```{r echo=FALSE}
+Nvars = length(df)
+print(paste("VARIABLES", Nvars))
+Ndatos = nrow(df) 
+print(paste("DATOS: ", Ndatos))
+
+```
+
+```{r echo=FALSE}
+### 1.2.2) Clasifica las variables de acuerdo a su tipo y escala de medición.
+
+#Variables cualitativas
+str(df)
+df_cual = df[,c(1,2,12)]
+df_cual
+```
+
+
+```{r echo=FALSE}
+#Variables cuantitativas
+df_cuan = df[,c(-1,-2, -12)]
+df_cuan
+```
+
+## 1.3) Exploración de la base de datos
+
+### 1.3.1) Calcula medidas estadísticas
+
+VARIABLES CUANTITATIVAS
+  - Medidas de tendencia central: promedio, media, mediana y moda de los datos.
+```{r echo=FALSE}
+summary(df)
+```
+
+  - Medidas de dispersión: rango: máximo - mínimo, varianza, desviación estándar.
+```{r echo=FALSE}
+print("---------------alcalinidad---------------")
+print(paste("Desviación estandár: ", sd(df$alcalinidad)))
+print(paste("Varianza: ", var(df$alcalinidad)))
+print(paste("Rango: ", diff(range(df$alcalinidad))))
+print("-------------------------")
+
+print(" ")
+print(" ")
+print("---------------PH---------------")
+print(paste("Desviación estandár: ", sd(df$PH)))
+print(paste("Varianza: ", var(df$PH)))
+print(paste("Rango: ", diff(range(df$PH))))
+print("-------------------------")
+
+print(" ")
+print(" ")
+print("---------------calcio---------------")
+print(paste("Desviación estandár: ", sd(df$calcio)))
+print(paste("Varianza: ", var(df$calcio)))
+print(paste("Rango: ", diff(range(df$calcio))))
+print("-------------------------")
+
+print(" ")
+print(" ")
+print("---------------clorofila---------------")
+print(paste("Desviación estandár: ", sd(df$clorofila)))
+print(paste("Varianza: ", var(df$clorofila)))
+print(paste("Rango: ", diff(range(df$clorofila))))
+print("-------------------------")
+
+print(" ")
+print(" ")
+print("---------------media_C---------------")
+print(paste("Desviación estandár: ", sd(df$`media_C` )))
+print(paste("Varianza: ", var(df$'media_C')))
+print(paste("Rango: ", diff(range(df$'media_C'))))
+print("-------------------------")
+
+print(" ")
+print(" ")
+print("---------------num_peces---------------")
+print(paste("Desviación estandár: ", sd(df$'num_peces')))
+print(paste("Varianza: ", var(df$'num_peces')))
+print(paste("Rango: ", diff(range(df$'num_peces'))))
+print("-------------------------")
+
+print(" ")
+print(" ")
+print("---------------min_C---------------")
+print(paste("Desviación estandár: ", sd(df$'min_C')))
+print(paste("Varianza: ", var(df$'min_C')))
+print(paste("Rango: ", diff(range(df$'min_C'))))
+print("-------------------------")
+
+print(" ")
+print(" ")
+print("---------------max_C---------------")
+print(paste("Desviación estandár: ", sd(df$'max_C')))
+print(paste("Varianza: ", var(df$'max_C')))
+print(paste("Rango: ", diff(range(df$'max_C'))))
+print("-------------------------")
+
+print(" ")
+print(" ")
+print("---------------estimacion---------------")
+print(paste("Desviación estandár: ", sd(df$estimacion)))
+print(paste("Varianza: ", var(df$estimacion)))
+print(paste("Rango: ", diff(range(df$estimacion))))
+print("-------------------------")
+
+print(" ")
+print(" ")
+print("---------------edad---------------")
+print(paste("Desviación estandár: ", sd(df$edad)))
+print(paste("Varianza: ", var(df$edad)))
+print(paste("Rango: ", diff(range(df$edad))))
+
+```
+
+VARIABLES CUALITATIVAS
+
+  - Tabla de distribución de frecuencia
+```{r echo=FALSE}
+print("VARIABLE X2")
+table(df$X2)
+print("VARIABLE edad")
+table(df$edad)
+```
+
+  - Moda
+```{r echo=FALSE}
+plot(table(df$name), main ="VARIABLE name") 
+plot(table(df$edad), main ="VARIABLE edad")
+```
+
+### 1.3.2) Explora los datos usando herramientas de visualización
+
+#Variables cuantitativas:
+  - Medidas de posición: q, outlier (valores atípicos), boxplots
+```{r echo=FALSE}
+
+#--------VARIABLE alcalinidad--------
+col = df$alcalinidad
+q_alcalinidad = quantile(col, c(0.25, 0.5, 0.75), type = 6)
+
+par(mfrow=c(2,1)) 
+boxplot(col, col="skyblue", horizontal = TRUE, frame.plot=F, main = "alcalinidad")
+value = quantile(col,0.75) + sd(col)
+abline(v=value,col="red") 
+
+
+#--------VARIABLE PH--------
+col = df$PH
+q_PH = quantile(col, c(0.25, 0.5, 0.75), type = 6)
+
+par(mfrow=c(2,1)) 
+boxplot(col, col="skyblue", horizontal = TRUE, frame.plot=F, main = "PH")
+value = quantile(col,0.75)+sd(col)
+abline(v=value,col="red") 
+
+
+#--------VARIABLE calcio--------
+col = df$calcio
+q_calcio = quantile(col, c(0.25, 0.5, 0.75), type = 6)
+
+par(mfrow=c(2,1)) 
+boxplot(col, col="skyblue", horizontal = TRUE, frame.plot=F, main = "calcio")
+value = quantile(col,0.75)+sd(col)
+abline(v=value,col="red") 
+
+
+#--------VARIABLE clorofila--------
+col = df$clorofila
+q_clorofila = quantile(col, c(0.25, 0.5, 0.75), type = 6)
+
+par(mfrow=c(2,1)) 
+boxplot(col, col="skyblue", horizontal = TRUE, frame.plot=F, main = "clorofila")
+value = quantile(col,0.75)+sd(col)
+abline(v=value,col="red") 
+
+
+#--------VARIABLE media_C--------
+col = df$'media_C'
+q_mediaC = quantile(col, c(0.25, 0.5, 0.75), type = 6);
+
+par(mfrow=c(2,1)) 
+boxplot(col, col="skyblue", horizontal = TRUE, frame.plot=F, main = "media_C")
+value = quantile(col,0.75)+sd(col)
+abline(v=value,col="red") 
+
+
+#--------VARIABLE num_peces--------
+col = df$'num_peces'
+q_numpeces = quantile(col, c(0.25, 0.5, 0.75), type = 6)
+
+par(mfrow=c(2,1)) 
+boxplot(col, col="skyblue", horizontal = TRUE, frame.plot=F, main = "num_peces")
+value = quantile(col,0.75)+sd(col)
+abline(v=value,col="red") 
+
+
+#--------VARIABLE min_C--------
+col = df$'min_C'
+q_minC = quantile(col, c(0.25, 0.5, 0.75), type = 6)
+
+par(mfrow=c(2,1)) 
+boxplot(col, col="skyblue", horizontal = TRUE, frame.plot=F, main = "min_C")
+value = quantile(col,0.75)+sd(col)
+abline(v=value,col="red")
+
+
+#--------VARIABLE max_C--------
+col = df$'max_C'
+q_maxC = quantile(col, c(0.25, 0.5, 0.75), type = 6);
+
+par(mfrow=c(2,1)) 
+boxplot(col, col="skyblue", horizontal = TRUE, frame.plot=F, main = "max_C")
+value = quantile(col,0.75)+sd(col)
+abline(v=value,col="red")
+
+
+#--------VARIABLE estimacion--------
+col = df$estimacion
+q_estimacion = quantile(col, c(0.25, 0.5, 0.75), type = 6);
+
+par(mfrow=c(2,1)) 
+boxplot(col, col="skyblue", horizontal = TRUE, frame.plot=F, main = "estimacion")
+value = quantile(col,0.75)+sd(col)
+abline(v=value,col="red")
+
+```
+
+Análisis de distribución de los datos (Histogramas). Identificar si tiene forma simétrica o asimétrica
+```{r echo=FALSE}
+hist(df$alcalinidad)
+Q1 = q_alcalinidad[1]
+Q2 = q_alcalinidad[2]
+Q3 = q_alcalinidad[3]
+library(ggplot2)
+ggplot(data = df, aes(x=alcalinidad)) +
+    geom_histogram(bins = 10) + 
+    geom_vline(aes(xintercept = Q1,
+                  color = "Q1"),
+              linetype = "dashed",
+              size = 1) +
+    geom_vline(aes(xintercept = Q2,
+                  color = "Q2"),
+              linetype = "dashed",
+              size = 1) +
+    geom_vline(aes(xintercept = Q3,
+                  color = "Q3"),
+              linetype = "dashed",
+              size = 1) +  
+  labs(title = "Histograma de alcalinidad",subtitle =  paste("Cuartil 1 al 25% = ",Q1, ", Cuartil 2 al 50% = ",Q2, ", Cuartil 3 al 75% = ",Q3, " ASIMETRICO"))
+```
+
+```{r echo=FALSE}
+hist(df$PH)
+Q1 = q_PH[1]
+Q2 = q_PH[2]
+Q3 = q_PH[3]
+ggplot(data = df, aes(x=PH)) +
+    geom_histogram(bins = 7) + 
+    geom_vline(aes(xintercept = Q1,
+                  color = "Q1"),
+              linetype = "dashed",
+              size = 1) +
+    geom_vline(aes(xintercept = Q2,
+                  color = "Q2"),
+              linetype = "dashed",
+              size = 1) +
+    geom_vline(aes(xintercept = Q3,
+                  color = "Q3"),
+              linetype = "dashed",
+              size = 1) +  
+  labs(title = "Histograma de PH",subtitle =  paste("Cuartil 1 al 25% = ",Q1, ", Cuartil 2 al 50% = ",Q2, ", Cuartil 3 al 75% = ",Q3, " ASIMETRICO"))
+```
+
+```{r echo=FALSE}
+
+hist(df$calcio)
+Q1 = q_calcio[1]
+Q2 = q_calcio[2]
+Q3 = q_calcio[3]
+ggplot(data = df, aes(x=calcio)) +
+    geom_histogram(bins = 10) + 
+    geom_vline(aes(xintercept = Q1,
+                  color = "Q1"),
+              linetype = "dashed",
+              size = 1) +
+    geom_vline(aes(xintercept = Q2,
+                  color = "Q2"),
+              linetype = "dashed",
+              size = 1) +
+    geom_vline(aes(xintercept = Q3,
+                  color = "Q3"),
+              linetype = "dashed",
+              size = 1) +  
+  labs(title = "Histograma de calcio",subtitle =  paste("Cuartil 1 al 25% = ",Q1, ", Cuartil 2 al 50% = ",Q2, ", Cuartil 3 al 75% = ",Q3, " ASIMETRICO"))
+```
+
+```{r echo=FALSE}
+hist(df$clorofila)
+Q1 = q_clorofila[1]
+Q2 = q_clorofila[2]
+Q3 = q_clorofila[3]
+ggplot(data = df, aes(x=clorofila)) +
+    geom_histogram(bins = 8) + 
+    geom_vline(aes(xintercept = Q1,
+                  color = "Q1"),
+              linetype = "dashed",
+              size = 1) +
+    geom_vline(aes(xintercept = Q2,
+                  color = "Q2"),
+              linetype = "dashed",
+              size = 1) +
+    geom_vline(aes(xintercept = Q3,
+                  color = "Q3"),
+              linetype = "dashed",
+              size = 1) +  
+  labs(title = "Histograma de clorofila",subtitle =  paste("Cuartil 1 al 25% = ",Q1, ", Cuartil 2 al 50% = ",Q2, ", Cuartil 3 al 75% = ",Q3, " ASIMETRICO"))
+```
+
+```{r echo=FALSE}
+hist(df$'media_C')
+Q1 = q_mediaC[1]
+Q2 = q_mediaC[2]
+Q3 = q_mediaC[3]
+ggplot(data = df, aes(x=clorofila)) +
+    geom_histogram(bins = 8) + 
+    geom_vline(aes(xintercept = Q1,
+                  color = "Q1"),
+              linetype = "dashed",
+              size = 1) +
+    geom_vline(aes(xintercept = Q2,
+                  color = "Q2"),
+              linetype = "dashed",
+              size = 1) +
+    geom_vline(aes(xintercept = Q3,
+                  color = "Q3"),
+              linetype = "dashed",
+              size = 1) +  
+  labs(title = "Histograma de media_C",subtitle =  paste("Cuartil 1 al 25% = ",Q1, ", Cuartil 2 al 50% = ",Q2, ", Cuartil 3 al 75% = ",Q3, " ASIMETRICO"))
+```
+
+```{r echo=FALSE}
+hist(df$'num_peces')
+Q1 = q_numpeces[1]
+Q2 = q_numpeces[2]
+Q3 = q_numpeces[3]
+ggplot(data = df, aes(x = min_C)) +
+    geom_histogram(bins = 10) + 
+    geom_vline(aes(xintercept = Q1,
+                  color = "Q1"),
+              linetype = "dashed",
+              size = 1) +
+    geom_vline(aes(xintercept = Q2,
+                  color = "Q2"),
+              linetype = "dashed",
+              size = 1) +
+    geom_vline(aes(xintercept = Q3,
+                  color = "Q3"),
+              linetype = "dashed",
+              size = 1) +  
+  labs(title = "Histograma de num_peces",subtitle =  paste("Cuartil 1 al 25% = ",Q1, ", Cuartil 2 al 50% = ",Q2, ", Cuartil 3 al 75% = ",Q3, " ASIMETRICO"))
+```
+
+```{r echo=FALSE}
+hist(df$'min_C')
+Q1 = q_minC[1]
+Q2 = q_minC[2]
+Q3 = q_minC[3]
+ggplot(data = df, aes(x = min_C)) +
+    geom_histogram(bins = 10) + 
+    geom_vline(aes(xintercept = Q1,
+                  color = "Q1"),
+              linetype = "dashed",
+              size = 1) +
+    geom_vline(aes(xintercept = Q2,
+                  color = "Q2"),
+              linetype = "dashed",
+              size = 1) +
+    geom_vline(aes(xintercept = Q3,
+                  color = "Q3"),
+              linetype = "dashed",
+              size = 1) +  
+  labs(title = "Histograma de min_C",subtitle =  paste("Cuartil 1 al 25% = ",Q1, ", Cuartil 2 al 50% = ",Q2, ", Cuartil 3 al 75% = ",Q3, " ASIMETRICO"))
+```
+
+```{r echo=FALSE}
+hist(df$'max_C')
+Q1 = q_maxC[1]
+Q2 = q_maxC[2]
+Q3 = q_maxC[3]
+ggplot(data = df, aes(x=max_C)) +
+    geom_histogram(bins = 5) + 
+    geom_vline(aes(xintercept = Q1,
+                  color = "Q1"),
+              linetype = "dashed",
+              size = 1) +
+    geom_vline(aes(xintercept = Q2,
+                  color = "Q2"),
+              linetype = "dashed",
+              size = 1) +
+    geom_vline(aes(xintercept = Q3,
+                  color = "Q3"),
+              linetype = "dashed",
+              size = 1) +  
+  labs(title = "Histograma de max_C",subtitle =  paste("Cuartil 1 al 25% = ",Q1, ", Cuartil 2 al 50% = ",Q2, ", Cuartil 3 al 75% = ",Q3, " ASIMETRICO"))
+```
+
+```{r echo=FALSE}
+hist(df$estimacion)
+Q1 = q_estimacion[1]
+Q2 = q_estimacion[2]
+Q3 = q_estimacion[3]
+ggplot(data = df, aes(x= max_C)) +
+    geom_histogram(bins = 8) + 
+    geom_vline(aes(xintercept = Q1,
+                  color = "Q1"),
+              linetype = "dashed",
+              size = 1) +
+    geom_vline(aes(xintercept = Q2,
+                  color = "Q2"),
+              linetype = "dashed",
+              size = 1) +
+    geom_vline(aes(xintercept = Q3,
+                  color = "Q3"),
+              linetype = "dashed",
+              size = 1) +  
+  labs(title = "Histograma de estimacion",subtitle =  paste("Cuartil 1 al 25% = ",Q1, ", Cuartil 2 al 50% = ",Q2, ", Cuartil 3 al 75% = ",Q3, " ASIMETRICO"))
+```
+
+
+```{r echo=FALSE}
+#Variables categóricas
+
+#Distribución de los datos (diagramas de barras, diagramas de pastel)
+tablaedad = table(df$edad)
+
+pie(tablaedad, main ="Edad")
+
+barplot(tablaedad, main = "Frequencia absoluta edad",
+        col = rainbow(3))
+
+tablaX2 <- table(df$name)
+
+pie(tablaX2,  main ="Nombres")
+
+
+barplot(tablaX2, main = "Frequencia absoluta nombres",
+        col = rainbow(3))
+
+```
+
+### 1.3.3) Explora la correlación entre las variables. 
+```{r echo=FALSE}
+library(corrplot)
+
+C = cor(df[,c(-1,-2)])
+corrplot(C, method = 'number')
+```
+Analizando la correlación de variables respecto a la media, podemos ver que los factores que tienen mayor correlación son la alcalinidad (-0.59), el PH (0.58), minimo de concentración (0.93), maximo de concentración (0.92) y la estimación (0.96)
+
+# 2) ANALIZA LOS DATOS Y PREGUNTA BASE
+
+## 2.1) De acuerdo con la pregunta base, contempla la herramienta estadística necesaria para contestarla.
+
+En base al analisis de datos hecho previamente, la herramienta estadistica que conviene para contestar la pregunta es una regresión multiple ya que como podemos ver en la ultima parte, hay más de 2 variables con una correlación alta que afecta el nivel de contaminación de mercurio.
+
+### Analisis de relación entre variables
+```{r echo=FALSE}
+round(cor(x = df_cuan, method = "pearson"), 3)
+```
+Fila: media_C          -0.594 -0.575 -0.401    -0.491   1.000     0.079  0.927  0.916      0.959
+
+Respecto al analisis entre variables podemos ver que las más siginicativas son: alcalinidad (-0.594), PH (-0.575), minimo en la concentración de mercurio (0.927), maximo en la concentración de mercurio (0.916) y estimación de la concentración de mercurio en el pez de 3 años. Mientras que las menos significativas son:  calcio (-0.401), clorofila (-0.491)(esta varibles se puede considerar dentro del modelo) y el numero de peces (0.079). 
+
+Las variables de min_C y max_C están medianamente correlacionados por lo que no sería útil introducir ambos predictores en el modelo.Ademas de que estos numeros son datos descriptivos del mercurio encontrado en los grupos de peces.
+
+
+### Generación de modelos
+```{r echo=FALSE}
+model = lm(df_cuan$media_C ~ df_cuan$alcalinidad + df_cuan$PH  + df_cuan$estimacion, data = df_cuan )
+summary(model)
+```
+Se introducieron las variables que se consideraron anteriormente que pueden influir en el mercurio, con estas variables con las cuales se obtuvo un mayor correlación respecto a nuestra variables dependiente (media_c). Se optuvo un a r^2 alta de 0.9203 la cual es capaz de explicar el 92% de la variabilidad de la media de mercurio hayada en los grupos de peces.
+
+```{r echo=FALSE}
+model = lm(df_cuan$media_C ~ df_cuan$alcalinidad + df_cuan$clorofila + df_cuan$PH  + df_cuan$estimacion, data = df_cuan )
+summary(model)
+```
+En este modelo podemos notar que si se toma encuenta la clorofila nuestra r^2 sube (ligeramente) a 0.9206 lo cual sigue siendo alta.
+
+### Posibles mejoras en el modelo
+```{r echo=FALSE}
+step(object = model, direction = "both", trace = 1)
+```
+
+### Coeficientes de confianza 
+```{r echo=FALSE}
+confint(lm(df_cuan$media_C ~ df_cuan$num_peces + df_cuan$min_C + df_cuan$max_C + df_cuan$estimacion, data = df_cuan ))
+```
+Podemos observar que las posibles mejoras que arroja son el tomar en consideración el numero de peces, el minimo, el maximo y la estimación. Como se meciono antes el minimo el maximo son variables de estadistica descriptiva en relación a la media, por lo que antes arrojo una correlación fuerte. Sin embargo se puede agregar al anterior modelo la variable de numero de peces ya que esta no es parte de la estadistica descriptiva de nuestra variable dependiente.
+
+```{r echo=FALSE}
+model = lm(df_cuan$media_C ~ df_cuan$alcalinidad + df_cuan$clorofila + df_cuan$num_peces + df_cuan$PH  + df_cuan$estimacion, data = df_cuan )
+summary(model)
+```
+
+## 2.3) Valida el modelo obtenido analizando los supuestos requeridos por el modelo.
+
+```{r echo=FALSE}
+library(ggplot2)
+library(gridExtra)
+plot1 <- ggplot(data = df_cuan, aes(df_cuan$media_C, model$residuals)) +
+    geom_point() + geom_smooth(color = "firebrick") + geom_hline(yintercept = 0) +
+    theme_bw()
+plot2 <- ggplot(data = df_cuan, aes(df_cuan$num_peces, model$residuals)) +
+    geom_point() + geom_smooth(color = "firebrick") + geom_hline(yintercept = 0) +
+    theme_bw()
+plot3 <- ggplot(data = df_cuan, aes(df_cuan$alcalinidad, model$residuals)) +
+    geom_point() + geom_smooth(color = "firebrick") + geom_hline(yintercept = 0) +
+    theme_bw()
+plot4 <- ggplot(data = df_cuan, aes(df_cuan$clorofila, model$residuals)) +
+    geom_point() + geom_smooth(color = "firebrick") + geom_hline(yintercept = 0) +
+    theme_bw()
+plot5 <- ggplot(data = df_cuan, aes(df_cuan$PH, model$residuals)) +
+    geom_point() + geom_smooth(color = "firebrick") + geom_hline(yintercept = 0) +
+    theme_bw()
+plot6 <- ggplot(data = df_cuan, aes(df_cuan$estimacion, model$residuals)) +
+    geom_point() + geom_smooth(color = "firebrick") + geom_hline(yintercept = 0) +
+    theme_bw()
+                                    
+grid.arrange(plot1, plot2, plot3, plot4, plot5, plot6)
+```
+
+### Distribución normal de los residuos
+```{r echo=FALSE}
+qqnorm(model$residuals)
+qqline(model$residuals)
+```
+
+```{r echo=FALSE}
+shapiro.test(model$residuals)
+```
+
+### Correlación entre predictores
+```{r echo=FALSE}
+library(corrplot)
+D = cor(df_cuan[,c(-3,-5, -7, -8)])
+corrplot(D,method = "number", tl.col = "black")
+
+```
+
+
+# Conclusión
+
+Acorde al modelo presentado se encontro que los principales factores que influyen en el nivel de contaminación de mercurio son: la alcalinidad, el PH, clorofila, numero de peces y estimacion de la concentración de mercurio en el pez de 3 años.
